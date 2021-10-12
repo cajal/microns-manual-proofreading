@@ -1,2 +1,2 @@
 # microns-minnie-proofreading
-proofreading schemas for minnie
+manual and automatic proofreading for minnie
