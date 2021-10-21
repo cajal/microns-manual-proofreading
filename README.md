@@ -1,2 +1,2 @@
-# microns-minnie-proofreading
-manual and automatic proofreading for minnie
+# microns-manual-proofreading
+microns manual proofreading
