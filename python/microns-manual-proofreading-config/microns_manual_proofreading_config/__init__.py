@@ -1,5 +1,5 @@
 """
-Configuration package/module for microns-coregistration.
+Configuration package/module for microns-manual-proofreading.
 """
 
 from . import adapters
@@ -15,29 +15,30 @@ except:
 
 from enum import Enum
 
-import microns_utils
+from microns_utils import config_utils
     
-microns_utils.enable_datajoint_flags()
+config_utils.enable_datajoint_flags()
 
 def register_externals(schema_name:str):
     """
     Registers the external stores for a schema_name in this module.
     """
-    return microns_utils.register_adapters(schema_name=schema_name, externals_mapping=externals_mapping)
+    return config_utils.register_externals(config_mapping[SCHEMAS(schema_name)]["externals"])
 
 
 def register_adapters(schema_name:str, context=None):
     """
     Imports the adapters for a schema_name into the global namespace.
-    """
-    return microns_utils.register_adapters(schema_name=schema_name, adapters_mapping=adapters_mapping, context=context)
+    """     
+    return config_utils.register_adapters(config_mapping[SCHEMAS(schema_name)]["adapters"], context=context)
 
 
 def create_vm(schema_name:str):
     """
     Creates a virtual module after registering the external stores, and includes the adapter objects in the vm.
     """
-    return microns_utils.create_vm(schema_name=schema_name, externals_mapping=externals_mapping, adapters_mapping=adapters_mapping)
+    schema = SCHEMAS(schema_name)
+    return config_utils.create_vm(schema.value, external_stores=config_mapping[schema]["externals"], adapter_objects=config_mapping[schema]["adapters"])
 
 
 class SCHEMAS(Enum):
@@ -50,7 +51,3 @@ config_mapping = {
         "adapters": None
     }
 }
-
-adapters_mapping = {SCHEMA.name: config_mapping[SCHEMA]['adapters'] for SCHEMA in SCHEMAS}
-
-externals_mapping = {SCHEMA.name: config_mapping[SCHEMA]['externals'] for SCHEMA in SCHEMAS}
