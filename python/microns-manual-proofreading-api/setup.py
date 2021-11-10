@@ -8,9 +8,9 @@ with open(path.join(here, '..', 'version.py')) as f:
     exec(f.read())
 
 setup(
-    name="microns-manual-proofreading-config",
+    name="microns-manual-proofreading-api",
     version=__version__,
-    description="configuration for microns-manual-proofreading",
+    description="api for microns-manual-proofreading",
     author="Christos Papadopoulos, Stelios Papadopoulos",
     packages=find_packages()
 )
