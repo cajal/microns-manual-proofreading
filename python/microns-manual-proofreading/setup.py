@@ -10,10 +10,10 @@ with open(path.join(here, '..', 'version.py')) as f:
 def find_api(name):
     return f"{name} @ file://localhost/{here}/../{name}#egg={name}"
 
-api = find_api('microns-nda-api')
+api = find_api('microns-manual-proofreading-api')
 
 setup(
-    name='microns-nda',
+    name='microns-manual-proofreading',
     version=__version__,
     description='Neural data access for MICrONS',
     author='Stelios Papadopoulos, Zhuokun Ding',
