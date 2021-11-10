@@ -4,7 +4,7 @@ from datajoint import datajoint_plus as djp
 import numpy as np
 import pandas as pd
 
-import microns_nda_config as config
+from microns_manual_proofreading_api import config
 schema_name = 'microns_minnie65_manual_proofreading'
 
 config.register_adapters(schema_name, context=locals())
