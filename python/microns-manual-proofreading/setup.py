@@ -10,7 +10,7 @@ with open(path.join(here, '..', 'version.py')) as f:
 def find_api(name):
     return f"{name} @ file://localhost/{here}/../{name}#egg={name}"
 
-api = find_api('microns-nda-config')
+api = find_api('microns-nda-api')
 
 setup(
     name='microns-nda',
