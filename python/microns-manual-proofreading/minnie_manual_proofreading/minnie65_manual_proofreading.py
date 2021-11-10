@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 
 from microns_manual_proofreading_api import config
-schema_name = 'microns_minnie65_manual_proofreading'
+schema_obj = config.SCHEMAS.MINNIE65_MANUAL_PROOFREADING
 
-config.register_adapters(schema_name, context=locals())
-config.register_externals(schema_name)
+config.register_adapters(schema_obj, context=locals())
+config.register_externals(schema_obj)
 
-schema = dj.schema(schema_name)
+schema = dj.schema(schema_obj.value)
 schema.spawn_missing_classes()
