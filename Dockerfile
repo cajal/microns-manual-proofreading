@@ -1,4 +1,4 @@
-FROM microns-base
+FROM ninai/microns-base
 LABEL mantainer="Stelios Papadopoulos <spapadop@bcm.edu>"
 
 RUN pip3 install \
@@ -16,4 +16,4 @@ WORKDIR /src
 
 # copy this project and install
 COPY . /src/microns-manual-proofreading
-RUN pip install -e /src/microns-manual-proofreading/python
+RUN pip install -e /src/microns-manual-proofreading/python/microns-manual-proofreading
