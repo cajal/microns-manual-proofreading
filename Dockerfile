@@ -12,8 +12,7 @@ ARG CLOUDVOLUME_TOKEN
 RUN mkdir -p .cloudvolume/secrets
 RUN echo "{\"token\": \"${CLOUDVOLUME_TOKEN:-}\"}" > .cloudvolume/secrets/cave-secret.json
 
-WORKDIR /src
-
 # copy this project and install
 COPY . /src/microns-manual-proofreading
 RUN pip install -e /src/microns-manual-proofreading/python/microns-manual-proofreading
+RUN pip install -e /src/microns-manual-proofreading/python/microns-manual-api
