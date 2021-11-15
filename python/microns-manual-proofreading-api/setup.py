@@ -11,6 +11,6 @@ setup(
     name="microns-manual-proofreading-api",
     version=__version__,
     description="api for microns-manual-proofreading",
-    author="Christos Papadopoulos, Stelios Papadopoulos",
+    author="Stelios Papadopoulos",
     packages=find_packages()
 )
