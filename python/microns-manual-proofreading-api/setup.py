@@ -11,7 +11,7 @@ setup(
     name="microns-manual-proofreading-api",
     version=__version__,
     description="api for microns-manual-proofreading",
-    author="Stelios Papadopoulos",
+    author="Stelios Papadopoulos, Christos Papadopoulos",
     packages=find_packages(),
     install_requires=['microns-utils@git+https://github.com/cajal/microns-utils.git']
 )
