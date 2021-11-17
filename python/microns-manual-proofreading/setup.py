@@ -15,9 +15,9 @@ api = find_api('microns-manual-proofreading-api')
 setup(
     name='microns-manual-proofreading',
     version=__version__,
-    description='Neural data access for MICrONS',
-    author='Stelios Papadopoulos, Zhuokun Ding',
-    author_email='spapadop@bcm.edu, zhuokund@bcm.edu',
+    description='Manual proofreading data for MICrONS',
+    author='Stelios Papadopoulos',
+    author_email='spapadop@bcm.edu',
     packages=find_packages(exclude=[]),
-    install_requires=['numpy', 'scipy', 'tqdm', 'pandas', 'seaborn', 'matplotlib', api]
+    install_requires=['numpy', 'scipy', 'tqdm', 'pandas', 'seaborn', 'matplotlib', api, 'microns-utils@git+https://github.com/cajal/microns-utils.git']
 )
