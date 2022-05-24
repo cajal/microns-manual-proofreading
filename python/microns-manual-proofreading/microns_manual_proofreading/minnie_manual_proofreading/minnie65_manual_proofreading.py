@@ -61,15 +61,17 @@ class ImportMethod(m65mprf.ImportMethod):
                 df.loc[:, 'finished_ax'] = df.finished_ax.apply(lambda x: 1*eval(x.title()))
                 df.loc[:, 'finished_den'] = df.finished_den.apply(lambda x: 1*x)
                 df.loc[:, 'axon_in_white_matter'] = df.axon_in_white_matter.apply(lambda x: 1*x)
-                df.loc[:75, 'proofreading_method'] = 'whole_cell'
-                df.loc[76:145, 'proofreading_method'] = 'projection_only'
-                df.loc[146:, 'proofreading_method'] = 'whole_cell'
+                df.loc[:75, 'prf_method'] = PrfMethod.hash1({'prf_method_name': 'whole_cell'})
+                df.loc[76:145, 'prf_method'] = PrfMethod.hash1({'prf_method_name': 'projection_only'})
+                df.loc[146:, 'prf_method'] = PrfMethod.hash1({'prf_method_name': 'whole_cell'})
                 df = df.query('finished_den == True and finished_ax == True')
                 df = df.where(pd.notnull(df), None)
                 df['ts_inserted'] = str(current_timestamp_for_mysql('US/Central'))
                 df['import_method'] = params['import_method']
                 return {'df': df}
 
+class PrfMethod(m65mprf.PrfMethod):
+    pass
 
 class PrfNucleusSet(m65mprf.PrfNucleusSet):
 
