@@ -32,6 +32,30 @@ class ImportMethod(djp.Lookup):
         path_to_csv : varchar(1000) # path to csv file
         """
 
+
+@schema
+class PrfMethod(djp.Lookup):
+    enable_hashing = True
+    hash_name = 'prf_method'
+    hashed_attrs = 'prf_method_name'
+    definition = """
+    prf_method : varchar(6) # method of proofreading
+    ---
+    prf_method_name : varchar(48) # name of proofreading method
+    prf_method_desc : varchar(1000) # proofreading description
+    ts_inserted=CURRENT_TIMESTAMP : timestamp # timestamp inserted
+    """
+    contents = [{
+        'prf_method_name': 'whole_cell',
+        'prf_method_desc': 'all dendrites extended and cleaned, axon fully extended and cleaned'
+        },
+        {
+        'prf_method_name': 'projection_only',
+        'prf_method_desc': 'all dendrites extended and cleaned, only axon projection extended, axon cleaned.'
+        }
+    ]
+
+
 @schema
 class PrfNucleusSet(djp.Lookup):
     hash_name = 'prf_nuc_set'
@@ -70,6 +94,7 @@ class PrfNucleusSet(djp.Lookup):
         ---
         excel_id : int # id of nucleus on excel sheet
         area : varchar(10) # visual area
+        -> PrfMethod
         proofreader_den=NULL : varchar(450) # name of dendrite proofreader
         time_min_den=NULL : float # time to complete dendrites (min)
         notes_den=NULL : varchar(1000) # dendrites note
