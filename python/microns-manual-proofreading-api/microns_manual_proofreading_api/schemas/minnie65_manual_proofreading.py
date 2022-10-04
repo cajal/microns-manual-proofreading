@@ -5,6 +5,8 @@ DataJoint tables for documenting manual proofreading in minnie65.
 import datajoint_plus as djp
 import datajoint as dj
 
+import microns_utils.datajoint_utils as dju
+from microns_utils.misc_utils import classproperty
 from microns_materialization_api.schemas import minnie65_materialization as m65mat
 
 from ..config import minnie65_manual_proofreading_config as config
@@ -14,6 +16,13 @@ config.register_adapters(context=locals())
 
 schema = djp.schema(config.schema_name, create_schema=True)
 
+
+@schema
+class Tag(dju.VersionLookup):
+    package = 'microns-manual-proofreading-api'
+    attr_name = 'tag'
+
+
 @schema
 class ImportMethod(djp.Lookup):
     hash_name = 'import_method'
@@ -22,7 +31,7 @@ class ImportMethod(djp.Lookup):
     """
 
     class ExcelPrfSheet(djp.Part):
-        enable_hashing=True
+        enable_hashing = True
         hash_name = 'import_method'
         hashed_attrs = 'version', 'path_to_csv'
         definition = """
@@ -30,6 +39,19 @@ class ImportMethod(djp.Lookup):
         ---
         version : int # method version
         path_to_csv : varchar(1000) # path to csv file
+        """
+
+    class CAVE(djp.Part):
+        enable_hashing = True
+        hash_name = 'import_method'
+        hashed_attrs = 'table_name', 'tag', 'ver'
+        definition  = """
+        -> master
+        ---
+        table_name : varchar(128)
+        -> m65mat.Materialization
+        -> Tag
+        ts_inserted=CURRENT_TIMESTAMP : timestamp
         """
 
 
@@ -62,29 +84,38 @@ class PrfNucleusSet(djp.Lookup):
     definition = """
     prf_nuc_set : varchar(12) # set hash
     """
-    @classmethod
-    def restrict_one_store(cls, part_restr={}, **kwargs):
-        return cls.restrict_one_part_with_hash(part_restr=part_restr, include_parts=cls.ExcelPrfSheet, **kwargs)
-    
-    r1s = restrict_one_store
+    @classproperty
+    def makers(cls):
+        return [cls.ExcelPrfSheetMaker, cls.CAVEMaker]
+
+    @classproperty
+    def stores(cls):
+        return [cls.ExcelPrfSheet, cls.CAVEProofreadingStatus]
 
     @classmethod
     def restrict_one_maker(cls, part_restr={}, **kwargs):
-        return cls.restrict_one_part_with_hash(part_restr, include_parts=cls.ExcelPrfSheetMaker, **kwargs)
+        kwargs.setdefault('include_parts', cls.makers)
+        return cls.restrict_one_part(part_restr, **kwargs)
     
-    r1m = restrict_one_maker
-
     @classmethod
-    def restrict_one_store_with_hash(cls, hash, **kwargs):
-        return cls.restrict_one_part_with_hash(hash=hash, include_parts=cls.ExcelPrfSheet, **kwargs)
+    def restrict_one_store(cls, part_restr={}, **kwargs):
+        kwargs.setdefault('include_parts', cls.stores)
+        return cls.restrict_one_part(part_restr=part_restr, **kwargs)
     
-    r1swh = restrict_one_store_with_hash
-
     @classmethod
     def restrict_one_maker_with_hash(cls, hash, **kwargs):
-        return cls.restrict_one_part_with_hash(hash=hash, include_parts=cls.ExcelPrfSheetMaker, **kwargs)
+        kwargs.setdefault('include_parts', cls.makers)
+        return cls.restrict_one_part_with_hash(hash=hash, **kwargs)
     
+    @classmethod
+    def restrict_one_store_with_hash(cls, hash, **kwargs):
+        kwargs.setdefault('include_parts', cls.stores)
+        return cls.restrict_one_part_with_hash(hash=hash, **kwargs)
+
+    r1m = restrict_one_maker
+    r1s = restrict_one_store    
     r1mwh = restrict_one_maker_with_hash
+    r1swh = restrict_one_store_with_hash
 
     class ExcelPrfSheet(djp.Part):
         hash_name = 'prf_nuc_set'
@@ -119,6 +150,34 @@ class PrfNucleusSet(djp.Lookup):
         ---
         ts_inserted : timestamp # timestamp inserted
         """
+        @classproperty
+        def key_source(self):
+            return ImportMethod.ExcelPrfSheet
+
+    class CAVEMaker(djp.Part, dj.Computed):
+        enable_hashing = True
+        hash_name = 'prf_nuc_set'
+        hashed_attrs = 'import_method'
+        hash_group = True
+        definition = """
+        -> master
+        -> ImportMethod
+        ---
+        ts_inserted=CURRENT_TIMESTAMP : timestamp # timestamp inserted
+        """
+
+        @classproperty
+        def key_source(cls):
+            return ImportMethod.CAVE
+
+    class CAVEProofreadingStatus(djp.Part):
+        hash_name = 'prf_nuc_set'
+        definition = """
+        -> m65mat.Nucleus
+        -> master
+        ---
+        status_dendrite : varchar(450) # dendrite proofreading status
+        status_axon : varchar(450) # axon proofreading status
+        """
 
 schema.spawn_missing_classes()
-schema.connection.dependencies.load()
