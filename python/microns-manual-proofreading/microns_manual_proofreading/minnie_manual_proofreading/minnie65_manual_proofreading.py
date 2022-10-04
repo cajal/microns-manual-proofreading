@@ -7,13 +7,19 @@ import pandas as pd
 from pathlib import Path
 import re 
 
-from microns_utils.datetime_utils import current_timestamp_for_mysql
+import microns_utils.ap_utils as apu
+from microns_utils.datetime_utils import current_timestamp
 from microns_manual_proofreading_api.schemas import minnie65_manual_proofreading as m65mprf
 
 schema = m65mprf.schema
 config = m65mprf.config
 
 logger = djp.getLogger(__name__)
+
+
+class Tag(m65mprf.Tag):
+    pass
+
 
 class ImportMethod(m65mprf.ImportMethod):
     @classmethod
@@ -66,12 +72,38 @@ class ImportMethod(m65mprf.ImportMethod):
                 df.loc[146:, 'prf_method'] = PrfMethod.hash1({'prf_method_name': 'whole_cell'})
                 df = df.query('finished_den == True and finished_ax == True')
                 df = df.where(pd.notnull(df), None)
-                df['ts_inserted'] = str(current_timestamp_for_mysql('US/Central'))
+                df['ts_inserted'] = str(current_timestamp('US/Central'))
                 df['import_method'] = params['import_method']
                 return {'df': df}
 
+    class CAVE(m65mprf.ImportMethod.CAVE, apu.CAVEClient):
+        @classmethod
+        def fill(cls, table_name, ver=None):
+            """
+            table_name (str) - name of CAVE table
+            ver (int) - ver to pass to apu.CAVEClient; None --> latest
+            """
+            cls.set_client(ver=ver)
+            assert table_name in cls.client.materialize.get_tables(), f'Table {table_name} not found in CAVEclient'
+            cls.insert1({'table_name': table_name, 'ver': cls.client.materialize.version, 'tag': Tag.version}, insert_to_master=True)
+
+        def run(self, **kwargs):
+            params = self.fetch1()
+            ver = int(params.get('ver'))
+            assert Tag.version == params.get('tag'), 'Package version mismatch. Update Import Method.'
+            self.set_client(ver=ver)
+            assert self.client_ver == ver, f'Materialization version mismatch. Method requires {ver}. Client version: {self.client_ver}'
+            nuc_df = self.client.materialize.query_table('nucleus_detection_v0')
+            prf_status_df = self.client.materialize.query_table(params.get('table_name')).query('valid=="t"')
+            merge_df = prf_status_df.merge(nuc_df, on='pt_root_id')
+            df = merge_df.rename(columns=dict(id_y='nucleus_id'))[['nucleus_id', 'status_dendrite', 'status_axon']]
+            df['import_method'] = params['import_method']
+            return {'df': df}
+
+
 class PrfMethod(m65mprf.PrfMethod):
     pass
+
 
 class PrfNucleusSet(m65mprf.PrfNucleusSet):
 
@@ -79,12 +111,18 @@ class PrfNucleusSet(m65mprf.PrfNucleusSet):
         pass
 
     class ExcelPrfSheetMaker(m65mprf.PrfNucleusSet.ExcelPrfSheetMaker):
-        @property
-        def key_source(self):
-            return ImportMethod.ExcelPrfSheet
-
         def make(self, key):
             df = ImportMethod.run(key)['df']
             df['prf_nuc_set'] = self.hash1(df, unique=True)
             self.master.ExcelPrfSheet.insert(df, ignore_extra_fields=True, insert_to_master=True, insert_to_master_kws={'ignore_extra_fields': True, 'skip_duplicates': True})
             self.insert(df, ignore_extra_fields=True, skip_hashing=True)
+    
+    class CAVEMaker(m65mprf.PrfNucleusSet.CAVEMaker):
+        def make(self, key):
+            df = ImportMethod.run(key)['df']
+            df['prf_nuc_set'] = self.hash1(df, unique=True)
+            self.master.CAVEProofreadingStatus.insert(df, ignore_extra_fields=True, skip_duplicates=True, insert_to_master=True, insert_to_master_kws={'ignore_extra_fields': True, 'skip_duplicates': True})
+            self.insert(df, ignore_extra_fields=True, skip_duplicates=True, skip_hashing=True)
+
+    class CAVEProofreadingStatus(m65mprf.PrfNucleusSet.CAVEProofreadingStatus):
+        pass
