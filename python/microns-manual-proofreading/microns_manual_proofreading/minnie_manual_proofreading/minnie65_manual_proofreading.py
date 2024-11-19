@@ -6,7 +6,7 @@ import datajoint_plus as djp
 import pandas as pd
 from pathlib import Path
 import re 
-
+from datetime import datetime
 import microns_utils.ap_utils as apu
 from microns_utils.datetime_utils import current_timestamp
 from microns_manual_proofreading_api.schemas import minnie65_manual_proofreading as m65mprf
@@ -126,3 +126,54 @@ class PrfNucleusSet(m65mprf.PrfNucleusSet):
 
     class CAVEProofreadingStatus(m65mprf.PrfNucleusSet.CAVEProofreadingStatus):
         pass
+
+
+class ExclusionMethod(m65mprf.ExclusionMethod):
+
+    class Manual(m65mprf.ExclusionMethod.Manual):
+        pass
+
+
+class PrfNucleusExclude(m65mprf.PrfNucleusExclude):
+    pass
+
+
+class PrfNucleusReInclude(m65mprf.PrfNucleusReInclude):
+    pass
+
+
+class PrfNucleusIncludeSet(m65mprf.PrfNucleusIncludeSet):
+    
+    class Member(m65mprf.PrfNucleusIncludeSet.Member):
+
+        @classmethod
+        def fill(cls, prf_nuc_set_id):
+            source = PrfNucleusSet.r1swh(prf_nuc_set_id)
+            source -= (PrfNucleusExclude - PrfNucleusReInclude.proj())
+            cls.insert(source, constant_attrs=dict(ts_computed=str(datetime.utcnow()), tag=Tag.version), ignore_extra_fields=True, skip_duplicates=True, insert_to_master=True)
+
+
+class PrfNucleusIncludeSetRecommended(m65mprf.PrfNucleusIncludeSetRecommended):
+    @classmethod
+    def fill(cls, prf_nuc_include_set, description, replace=True):
+        key = dict(
+            prf_nuc_include_set=prf_nuc_include_set,
+            description=description
+        )
+        cls.insert1(key, replace=replace)
+
+
+class UnitSeedProtocol(m65mprf.UnitSeedProtocol):
+    pass
+
+
+class UnitSeedGroupMethod(m65mprf.UnitSeedGroupMethod):
+    pass
+
+
+class PrfNucSelectionInfo(m65mprf.PrfNucSelectionInfo):
+    pass
+
+
+class SpreadsheetLink(m65mprf.SpreadsheetLink):
+    pass
