@@ -314,32 +314,7 @@ class UnitSeedProtocol(djp.Lookup):
     description          : varchar(256)                 # protocol description
     brain_areas=null     : varchar(45)                  # 
     """
-
-
-@schema
-class UnitSeedProtocol(djp.Lookup):
-    definition = """
-    # parameters used for selecting functional units for proofreading (imported from microns_minnie65_02.UnitSeedProtocol)
-    protocol_id          : tinyint                      # id of protocol
-    ---
-    protocol_name        : varchar(256)                 # name of protocol
-    cylinder_x=null      : float                        # x position of cylinder
-    cylinder_y=null      : float                        # y position of cylinder
-    cylinder_r=null      : float                        # radius of cylinder
-    xmin=null            : float                        # xmin
-    xmax=null            : float                        # xmax
-    ymin=null            : float                        # ymin
-    ymax=null            : float                        # ymax
-    zmin=null            : float                        # zmin
-    zmax=null            : float                        # zmax
-    oracle_min=null      : float                        # minimum unit oracle pearson correlation over all movies
-    test_corr_min=null   : double                       # minimum corr(dynamic model, trial response) for each unit (model test correlation)
-    mean_corr_min=null   : double                       # minimum corr(dynamic model, mean response) for each unit (new fraction of oracle)
-    real_von_pred_adv_min=null : float                        # mouse von mises predictive advantage over shuffled data
-    model_von_pred_adv_min=null : float                        # model von mises predictive advantage over shuffled data
-    description          : varchar(256)                 # protocol description
-    brain_areas=null     : varchar(45)                  # 
-    """
+    
 
 @schema
 class UnitSeedGroupMethod(djp.Lookup):
